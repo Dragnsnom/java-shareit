@@ -1,14 +1,22 @@
 package ru.practicum.shareit.user;
 
-public class User {
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
+public class UserDto {
     private Long id;
+
+    @NotBlank
     private String name;
+
+    @NotBlank
+    @Email
     private String email;
 
-    public User() {
+    public UserDto() {
     }
 
-    public User(Long id, String name, String email) {
+    public UserDto(Long id, String name, String email) {
         this.id = id;
         this.name = name;
         this.email = email;
