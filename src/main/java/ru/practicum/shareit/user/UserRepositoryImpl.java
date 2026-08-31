@@ -1,14 +1,12 @@
 package ru.practicum.shareit.user;
 
 import org.springframework.stereotype.Repository;
-import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.NotFoundException;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 
 @Repository
