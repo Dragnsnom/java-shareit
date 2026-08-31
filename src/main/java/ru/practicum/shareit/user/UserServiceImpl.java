@@ -18,14 +18,11 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto createUser(UserDto userDto) {
         if (userDto.getEmail() == null || userDto.getEmail().isEmpty()) {
-            throw new IllegalArgumentException("Email не может быть пустым");
+            throw new ru.practicum.shareit.exception.ValidationException("Email не может быть пустым");
         }
+        checkEmailDuplication(userDto.getEmail(), null);
         User user = UserMapper.toUser(userDto);
-        try {
-            return UserMapper.toUserDto(userRepository.save(user));
-        } catch (ConflictException e) {
-            throw new ConflictException("Пользователь с таким email уже существует");
-        }
+        return UserMapper.toUserDto(userRepository.save(user));
     }
 
     @Override
@@ -51,15 +48,24 @@ public class UserServiceImpl implements UserService {
             existingUser.setName(userDto.getName());
         }
         if (userDto.getEmail() != null && !userDto.getEmail().isBlank()) {
+            checkEmailDuplication(userDto.getEmail(), id);
             existingUser.setEmail(userDto.getEmail());
         }
 
         return UserMapper.toUserDto(userRepository.update(id, existingUser));
     }
 
+    private void checkEmailDuplication(String email, Long userId) {
+        boolean duplicate = userRepository.findAll().stream()
+                .anyMatch(u -> u.getEmail().equals(email) && !u.getId().equals(userId));
+        if (duplicate) {
+            throw new ConflictException("Email already exists: " + email);
+        }
+    }
+
     @Override
     public void deleteUser(Long id) {
-        userRepository.findById(id)
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
         userRepository.deleteById(id);
     }

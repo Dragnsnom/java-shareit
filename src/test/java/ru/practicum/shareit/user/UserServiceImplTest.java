@@ -49,10 +49,10 @@ class UserServiceImplTest {
     }
 
     @Test
-    void createUser_NullEmail_ThrowsIllegalArgumentException() {
+    void createUser_NullEmail_ThrowsValidationException() {
         userDto.setEmail(null);
 
-        assertThrows(IllegalArgumentException.class, () -> userService.createUser(userDto));
+        assertThrows(ru.practicum.shareit.exception.ValidationException.class, () -> userService.createUser(userDto));
     }
 
     @Test

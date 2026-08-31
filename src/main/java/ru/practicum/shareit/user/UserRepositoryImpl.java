@@ -19,7 +19,6 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public User save(User user) {
-        checkEmailDuplication(user.getEmail(), user.getId());
         if (user.getId() == null) {
             user.setId(++currentId);
         }
@@ -47,25 +46,10 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public User update(Long id, User user) {
-        User existingUser = users.get(id);
-        if (existingUser == null) {
+        if (!users.containsKey(id)) {
             throw new NotFoundException("User not found with id: " + id);
         }
-        if (user.getName() != null) {
-            existingUser.setName(user.getName());
-        }
-        if (user.getEmail() != null) {
-            checkEmailDuplication(user.getEmail(), id);
-            existingUser.setEmail(user.getEmail());
-        }
-        return existingUser;
-    }
-
-    private void checkEmailDuplication(String email, Long userId) {
-        boolean duplicate = users.values().stream()
-                .anyMatch(u -> u.getEmail().equals(email) && !Objects.equals(u.getId(), userId));
-        if (duplicate) {
-            throw new ConflictException("Email already exists: " + email);
-        }
+        users.put(id, user);
+        return user;
     }
 }

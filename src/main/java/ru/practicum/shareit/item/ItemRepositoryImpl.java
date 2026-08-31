@@ -40,22 +40,11 @@ public class ItemRepositoryImpl implements ItemRepository {
 
     @Override
     public Item update(Long id, Item item) {
-        Item existingItem = items.get(id);
-        if (existingItem == null) {
+        if (!items.containsKey(id)) {
             throw new NotFoundException("Item not found with id: " + id);
         }
-
-        if (item.getName() != null) {
-            existingItem.setName(item.getName());
-        }
-        if (item.getDescription() != null) {
-            existingItem.setDescription(item.getDescription());
-        }
-        if (item.getAvailable() != null) {
-            existingItem.setAvailable(item.getAvailable());
-        }
-
-        return existingItem;
+        items.put(id, item);
+        return item;
     }
 
     @Override
