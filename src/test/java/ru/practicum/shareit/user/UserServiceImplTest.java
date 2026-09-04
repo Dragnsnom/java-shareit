@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.exception.ValidationException;
 
 import java.util.List;
 import java.util.Optional;
@@ -52,12 +53,12 @@ class UserServiceImplTest {
     void createUser_NullEmail_ThrowsValidationException() {
         userDto.setEmail(null);
 
-        assertThrows(ru.practicum.shareit.exception.ValidationException.class, () -> userService.createUser(userDto));
+        assertThrows(ValidationException.class, () -> userService.createUser(userDto));
     }
 
     @Test
     void createUser_ConflictEmail_ThrowsConflictException() {
-        when(userRepository.save(any(User.class))).thenThrow(new ConflictException("Conflict"));
+        when(userRepository.findByEmail(any(String.class))).thenReturn(Optional.of(new User(2L, "Other", "test@test.com")));
 
         assertThrows(ConflictException.class, () -> userService.createUser(userDto));
     }

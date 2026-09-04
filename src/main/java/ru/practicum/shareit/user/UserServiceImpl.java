@@ -7,6 +7,8 @@ import ru.practicum.shareit.exception.NotFoundException;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import ru.practicum.shareit.exception.ValidationException;
+
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
@@ -18,7 +20,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto createUser(UserDto userDto) {
         if (userDto.getEmail() == null || userDto.getEmail().isEmpty()) {
-            throw new ru.practicum.shareit.exception.ValidationException("Email не может быть пустым");
+            throw new ValidationException("Email не может быть пустым");
         }
         checkEmailDuplication(userDto.getEmail(), null);
         User user = UserMapper.toUser(userDto);
@@ -56,11 +58,11 @@ public class UserServiceImpl implements UserService {
     }
 
     private void checkEmailDuplication(String email, Long userId) {
-        boolean duplicate = userRepository.findAll().stream()
-                .anyMatch(u -> u.getEmail().equals(email) && !u.getId().equals(userId));
-        if (duplicate) {
-            throw new ConflictException("Email already exists: " + email);
-        }
+        userRepository.findByEmail(email).ifPresent(user -> {
+            if (!user.getId().equals(userId)) {
+                throw new ConflictException("Пользователь с таким email уже существует");
+            }
+        });
     }
 
     @Override
