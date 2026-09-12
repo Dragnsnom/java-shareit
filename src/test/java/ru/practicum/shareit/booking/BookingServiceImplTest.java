@@ -112,10 +112,10 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void approveBooking_ByNonOwner_ThrowsNotFoundException() {
+    void approveBooking_ByNonOwner_ThrowsValidationException() {
         when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
 
-        assertThrows(NotFoundException.class, () -> bookingService.approveBooking(2L, 1L, true));
+        assertThrows(ValidationException.class, () -> bookingService.approveBooking(2L, 1L, true));
     }
 
     @Test
