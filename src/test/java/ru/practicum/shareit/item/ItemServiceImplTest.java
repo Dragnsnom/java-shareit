@@ -6,6 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.dto.ItemDto;
@@ -13,6 +14,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,6 +32,12 @@ class ItemServiceImplTest {
 
     @Mock
     private UserRepository userRepository;
+
+    @Mock
+    private BookingRepository bookingRepository;
+
+    @Mock
+    private CommentRepository commentRepository;
 
     @InjectMocks
     private ItemServiceImpl itemService;
@@ -77,13 +85,13 @@ class ItemServiceImplTest {
     void updateItem_ValidData_ReturnsUpdatedItemDto() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
         when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
-        when(itemRepository.update(any(Long.class), any(Item.class))).thenReturn(item);
+        when(itemRepository.save(any(Item.class))).thenReturn(item);
 
         ItemDto updateDto = new ItemDto(null, "Updated Name", null, null, null);
         ItemDto result = itemService.updateItem(1L, 1L, updateDto);
 
         assertEquals(itemDto.getId(), result.getId());
-        verify(itemRepository).update(any(Long.class), any(Item.class));
+        verify(itemRepository).save(any(Item.class));
     }
 
     @Test
@@ -98,8 +106,9 @@ class ItemServiceImplTest {
     @Test
     void getItemById_ExistingId_ReturnsItemDto() {
         when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(commentRepository.findAllByItemId(1L)).thenReturn(Collections.emptyList());
 
-        ItemDto result = itemService.getItemById(1L);
+        ItemDto result = itemService.getItemById(1L, 1L);
 
         assertEquals(itemDto.getId(), result.getId());
         assertEquals(itemDto.getName(), result.getName());
@@ -108,6 +117,9 @@ class ItemServiceImplTest {
     @Test
     void getItemsByOwnerId_ExistingOwner_ReturnsListOfItemDtos() {
         when(itemRepository.findAllByOwnerId(1L)).thenReturn(List.of(item));
+        when(commentRepository.findAllByItemIdIn(List.of(1L))).thenReturn(Collections.emptyList());
+        when(bookingRepository.findAllByItem_IdInAndStatusOrderByStartAsc(any(), any()))
+                .thenReturn(Collections.emptyList());
 
         List<ItemDto> result = itemService.getItemsByOwnerId(1L);
 
