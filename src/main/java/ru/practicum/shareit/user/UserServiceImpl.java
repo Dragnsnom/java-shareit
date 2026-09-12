@@ -54,7 +54,7 @@ public class UserServiceImpl implements UserService {
             existingUser.setEmail(userDto.getEmail());
         }
 
-        return UserMapper.toUserDto(userRepository.update(id, existingUser));
+        return UserMapper.toUserDto(userRepository.save(existingUser));
     }
 
     private void checkEmailDuplication(String email, Long userId) {
@@ -67,8 +67,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void deleteUser(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        if (!userRepository.existsById(id)) {
+            throw new NotFoundException("Пользователь не найден");
+        }
         userRepository.deleteById(id);
     }
 }

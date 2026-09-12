@@ -94,18 +94,18 @@ class UserServiceImplTest {
     @Test
     void updateUser_ValidDto_ReturnsUpdatedUserDto() {
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
-        when(userRepository.update(any(Long.class), any(User.class))).thenReturn(user);
+        when(userRepository.save(any(User.class))).thenReturn(user);
 
         UserDto updateDto = new UserDto(null, "Updated Name", null);
         UserDto result = userService.updateUser(1L, updateDto);
 
         assertEquals(userDto.getId(), result.getId());
-        verify(userRepository).update(any(Long.class), any(User.class));
+        verify(userRepository).save(any(User.class));
     }
 
     @Test
     void deleteUser_ExistingId_CallsDeleteOnRepository() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.existsById(1L)).thenReturn(true);
 
         userService.deleteUser(1L);
 
@@ -114,7 +114,7 @@ class UserServiceImplTest {
 
     @Test
     void deleteUser_NonExistingId_ThrowsNotFoundException() {
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        when(userRepository.existsById(1L)).thenReturn(false);
 
         assertThrows(NotFoundException.class, () -> userService.deleteUser(1L));
     }
