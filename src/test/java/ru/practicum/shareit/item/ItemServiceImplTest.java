@@ -83,7 +83,7 @@ class ItemServiceImplTest {
 
     @Test
     void updateItem_ValidData_ReturnsUpdatedItemDto() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.existsById(1L)).thenReturn(true);
         when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
         when(itemRepository.save(any(Item.class))).thenReturn(item);
 
@@ -96,8 +96,7 @@ class ItemServiceImplTest {
 
     @Test
     void updateItem_NotOwner_ThrowsNotFoundException() {
-        User anotherUser = new User(2L, "Another", "another@test.com");
-        when(userRepository.findById(2L)).thenReturn(Optional.of(anotherUser));
+        when(userRepository.existsById(2L)).thenReturn(true);
         when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
 
         assertThrows(NotFoundException.class, () -> itemService.updateItem(2L, 1L, itemDto));

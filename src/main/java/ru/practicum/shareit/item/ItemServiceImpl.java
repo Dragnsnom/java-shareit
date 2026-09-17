@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
+@Transactional(readOnly = true)
 public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
@@ -39,6 +39,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional
     public ItemDto createItem(Long userId, ItemDto itemDto) {
         if (itemDto.getName() == null || itemDto.getName().isBlank()) {
             throw new ValidationException("Название вещи не может быть пустым");
@@ -59,9 +60,11 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional
     public ItemDto updateItem(Long userId, Long itemId, ItemDto itemDto) {
-        userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
+        if (!userRepository.existsById(userId)) {
+            throw new NotFoundException("Пользователь не найден");
+        }
 
         Item existingItem = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
@@ -84,7 +87,6 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public ItemDto getItemById(Long userId, Long itemId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
@@ -100,7 +102,6 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<ItemDto> getItemsByOwnerId(Long ownerId) {
         List<Item> items = itemRepository.findAllByOwnerId(ownerId);
         List<Long> itemIds = items.stream().map(Item::getId).collect(Collectors.toList());
@@ -123,7 +124,6 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    @Transactional(readOnly = true)
     public List<ItemDto> searchItems(String text) {
         if (text == null || text.isBlank()) {
             return List.of();
@@ -134,6 +134,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional
     public CommentDto addComment(Long userId, Long itemId, CommentDto commentDto) {
         User author = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));

@@ -136,7 +136,7 @@ class BookingServiceImplTest {
 
     @Test
     void getUserBookings_AllState_ReturnsBookings() {
-        when(userRepository.findById(2L)).thenReturn(Optional.of(booker));
+        when(userRepository.existsById(2L)).thenReturn(true);
         when(bookingRepository.findAllByBookerIdOrderByStartDesc(2L)).thenReturn(List.of(booking));
 
         List<BookingDto> result = bookingService.getUserBookings(2L, BookingState.ALL);
@@ -146,7 +146,7 @@ class BookingServiceImplTest {
 
     @Test
     void getOwnerBookings_AllState_ReturnsBookings() {
-        when(userRepository.findById(1L)).thenReturn(Optional.of(owner));
+        when(userRepository.existsById(1L)).thenReturn(true);
         when(bookingRepository.findAllByItem_Owner_IdOrderByStartDesc(1L)).thenReturn(List.of(booking));
 
         List<BookingDto> result = bookingService.getOwnerBookings(1L, BookingState.ALL);
