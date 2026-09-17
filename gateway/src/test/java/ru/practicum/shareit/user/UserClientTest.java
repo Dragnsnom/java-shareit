@@ -3,6 +3,7 @@ package ru.practicum.shareit.user;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import ru.practicum.shareit.config.ClientConfig;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -21,7 +22,7 @@ class UserClientTest {
 
     @BeforeEach
     void setUp() {
-        client = new UserClient("http://localhost:9090", new RestTemplateBuilder());
+        client = new ClientConfig().userClient("http://localhost:9090", new RestTemplateBuilder());
         server = MockRestServiceServer.bindTo(client.getRestTemplate()).build();
     }
 

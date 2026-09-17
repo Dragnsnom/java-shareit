@@ -3,6 +3,7 @@ package ru.practicum.shareit.booking;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import ru.practicum.shareit.config.ClientConfig;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -25,7 +26,7 @@ class BookingClientTest {
 
     @BeforeEach
     void setUp() {
-        client = new BookingClient("http://localhost:9090", new RestTemplateBuilder());
+        client = new ClientConfig().bookingClient("http://localhost:9090", new RestTemplateBuilder());
         server = MockRestServiceServer.bindTo(client.getRestTemplate()).build();
     }
 
