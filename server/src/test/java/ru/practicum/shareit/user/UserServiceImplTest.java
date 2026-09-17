@@ -104,6 +104,37 @@ class UserServiceImplTest {
     }
 
     @Test
+    void updateUser_UnknownId_ThrowsNotFoundException() {
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> userService.updateUser(1L, userDto));
+    }
+
+    @Test
+    void updateUser_EmailChangedToNewNonConflictingEmail_UpdatesEmail() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.findByEmail("new@test.com")).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenReturn(user);
+
+        UserDto updateDto = new UserDto(null, null, "new@test.com");
+        userService.updateUser(1L, updateDto);
+
+        assertEquals("new@test.com", user.getEmail());
+    }
+
+    @Test
+    void updateUser_EmailUnchanged_NoConflictThrown() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(userRepository.findByEmail("test@test.com")).thenReturn(Optional.of(user));
+        when(userRepository.save(any(User.class))).thenReturn(user);
+
+        UserDto updateDto = new UserDto(null, null, "test@test.com");
+        UserDto result = userService.updateUser(1L, updateDto);
+
+        assertEquals("test@test.com", result.getEmail());
+    }
+
+    @Test
     void deleteUser_ExistingId_CallsDeleteOnRepository() {
         when(userRepository.existsById(1L)).thenReturn(true);
 

@@ -4,6 +4,9 @@ import ru.practicum.shareit.item.Comment;
 
 public class CommentMapper {
 
+    private CommentMapper() {
+    }
+
     public static CommentDto toCommentDto(Comment comment) {
         return new CommentDto(
                 comment.getId(),

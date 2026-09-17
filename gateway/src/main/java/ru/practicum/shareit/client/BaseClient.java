@@ -3,7 +3,6 @@ package ru.practicum.shareit.client;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -16,6 +15,10 @@ public class BaseClient {
 
     public BaseClient(RestTemplate rest) {
         this.rest = rest;
+    }
+
+    public RestTemplate getRestTemplate() {
+        return rest;
     }
 
     protected ResponseEntity<Object> get(String path) {
@@ -103,9 +106,5 @@ public class BaseClient {
             return responseBuilder.body(response.getBody());
         }
         return responseBuilder.build();
-    }
-
-    protected static boolean isError(HttpStatus status) {
-        return status.isError();
     }
 }

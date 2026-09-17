@@ -92,6 +92,15 @@ class BookingControllerTest {
     }
 
     @Test
+    void getBooking_ReturnsBooking() throws Exception {
+        when(bookingService.getBooking(2L, 1L)).thenReturn(sampleBookingDto());
+
+        mockMvc.perform(get("/bookings/1").header(USER_HEADER, 2L))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1));
+    }
+
+    @Test
     void getBooking_UnrelatedUser_Returns404() throws Exception {
         when(bookingService.getBooking(3L, 1L)).thenThrow(new NotFoundException("Доступ к бронированию запрещён"));
 

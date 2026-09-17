@@ -7,6 +7,9 @@ import ru.practicum.shareit.user.User;
 
 public class BookingMapper {
 
+    private BookingMapper() {
+    }
+
     public static Booking toBooking(BookItemRequestDto dto, Item item, User booker) {
         Booking booking = new Booking();
         booking.setStart(dto.getStart());

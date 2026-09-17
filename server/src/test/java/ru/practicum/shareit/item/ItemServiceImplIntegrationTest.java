@@ -125,6 +125,57 @@ class ItemServiceImplIntegrationTest {
     }
 
     @Test
+    void getItemById_AsOwner_WithPastAndFutureBookings_PopulatesLastAndNextBooking() {
+        ItemDto item = itemService.createItem(owner.getId(),
+                new ItemDto(null, "Drill", "Powerful drill", true, null));
+        ru.practicum.shareit.item.model.Item entity = itemFrom(item, owner);
+
+        Booking past = new Booking();
+        past.setStart(LocalDateTime.now().minusDays(2));
+        past.setEnd(LocalDateTime.now().minusDays(1));
+        past.setStatus(BookingStatus.APPROVED);
+        past.setBooker(booker);
+        past.setItem(entity);
+        bookingRepository.save(past);
+
+        Booking future = new Booking();
+        future.setStart(LocalDateTime.now().plusDays(1));
+        future.setEnd(LocalDateTime.now().plusDays(2));
+        future.setStatus(BookingStatus.APPROVED);
+        future.setBooker(booker);
+        future.setItem(entity);
+        bookingRepository.save(future);
+
+        ItemDto result = itemService.getItemById(owner.getId(), item.getId());
+
+        assertEquals(past.getId(), result.getLastBooking().getId());
+        assertEquals(future.getId(), result.getNextBooking().getId());
+    }
+
+    @Test
+    void getItemsByOwnerId_WithCommentsAndBookings_PopulatesAggregates() {
+        ItemDto item = itemService.createItem(owner.getId(),
+                new ItemDto(null, "Drill", "Powerful drill", true, null));
+        ru.practicum.shareit.item.model.Item entity = itemFrom(item, owner);
+
+        Booking past = new Booking();
+        past.setStart(LocalDateTime.now().minusDays(2));
+        past.setEnd(LocalDateTime.now().minusDays(1));
+        past.setStatus(BookingStatus.APPROVED);
+        past.setBooker(booker);
+        past.setItem(entity);
+        bookingRepository.save(past);
+
+        itemService.addComment(booker.getId(), item.getId(), new CommentDto(null, "Nice!", null, null));
+
+        List<ItemDto> result = itemService.getItemsByOwnerId(owner.getId());
+
+        assertEquals(1, result.size());
+        assertEquals(1, result.get(0).getComments().size());
+        assertEquals(past.getId(), result.get(0).getLastBooking().getId());
+    }
+
+    @Test
     void addComment_WithoutCompletedBooking_ThrowsValidationException() {
         ItemDto item = itemService.createItem(owner.getId(),
                 new ItemDto(null, "Drill", "Powerful drill", true, null));

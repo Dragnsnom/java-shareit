@@ -165,4 +165,90 @@ class ItemServiceImplTest {
         assertEquals(1, result.size());
         assertEquals(itemDto.getId(), result.get(0).getId());
     }
+
+    @Test
+    void searchItems_BlankText_ReturnsEmptyList() {
+        List<ItemDto> result = itemService.searchItems("   ");
+
+        assertEquals(0, result.size());
+    }
+
+    @Test
+    void createItem_BlankDescription_ThrowsValidationException() {
+        itemDto.setDescription("");
+
+        assertThrows(ValidationException.class, () -> itemService.createItem(1L, itemDto));
+    }
+
+    @Test
+    void createItem_NullAvailable_ThrowsValidationException() {
+        itemDto.setAvailable(null);
+
+        assertThrows(ValidationException.class, () -> itemService.createItem(1L, itemDto));
+    }
+
+    @Test
+    void updateItem_UserNotFound_ThrowsNotFoundException() {
+        when(userRepository.existsById(1L)).thenReturn(false);
+
+        assertThrows(NotFoundException.class, () -> itemService.updateItem(1L, 1L, itemDto));
+    }
+
+    @Test
+    void updateItem_ItemNotFound_ThrowsNotFoundException() {
+        when(userRepository.existsById(1L)).thenReturn(true);
+        when(itemRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> itemService.updateItem(1L, 1L, itemDto));
+    }
+
+    @Test
+    void updateItem_OnlyDescriptionProvided_UpdatesDescription() {
+        when(userRepository.existsById(1L)).thenReturn(true);
+        when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(itemRepository.save(any(Item.class))).thenReturn(item);
+
+        ItemDto updateDto = new ItemDto(null, null, "New description", null, null);
+        itemService.updateItem(1L, 1L, updateDto);
+
+        assertEquals("New description", item.getDescription());
+    }
+
+    @Test
+    void updateItem_OnlyAvailableProvided_UpdatesAvailable() {
+        when(userRepository.existsById(1L)).thenReturn(true);
+        when(itemRepository.findById(1L)).thenReturn(Optional.of(item));
+        when(itemRepository.save(any(Item.class))).thenReturn(item);
+
+        ItemDto updateDto = new ItemDto(null, null, null, false, null);
+        itemService.updateItem(1L, 1L, updateDto);
+
+        assertEquals(false, item.getAvailable());
+    }
+
+    @Test
+    void getItemById_ItemNotFound_ThrowsNotFoundException() {
+        when(itemRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> itemService.getItemById(1L, 1L));
+    }
+
+    @Test
+    void addComment_UserNotFound_ThrowsNotFoundException() {
+        ru.practicum.shareit.item.dto.CommentDto commentDto =
+                new ru.practicum.shareit.item.dto.CommentDto(null, "Great!", null, null);
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> itemService.addComment(1L, 1L, commentDto));
+    }
+
+    @Test
+    void addComment_ItemNotFound_ThrowsNotFoundException() {
+        ru.practicum.shareit.item.dto.CommentDto commentDto =
+                new ru.practicum.shareit.item.dto.CommentDto(null, "Great!", null, null);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(itemRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> itemService.addComment(1L, 1L, commentDto));
+    }
 }

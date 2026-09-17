@@ -71,6 +71,15 @@ class UserControllerTest {
     }
 
     @Test
+    void getUserById_UnexpectedException_Returns500() throws Exception {
+        when(userService.getUserById(1L)).thenThrow(new RuntimeException("boom"));
+
+        mockMvc.perform(get("/users/1"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.error").exists());
+    }
+
+    @Test
     void getUserById_MissingUser_Returns404() throws Exception {
         when(userService.getUserById(999L)).thenThrow(new NotFoundException("Пользователь не найден"));
 

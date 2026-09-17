@@ -23,6 +23,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -152,5 +153,89 @@ class BookingServiceImplTest {
         List<BookingDto> result = bookingService.getOwnerBookings(1L, BookingState.ALL);
 
         assertEquals(1, result.size());
+    }
+
+    @Test
+    void createBooking_UserNotFound_ThrowsNotFoundException() {
+        when(userRepository.findById(2L)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> bookingService.createBooking(2L, requestDto));
+    }
+
+    @Test
+    void createBooking_ItemNotFound_ThrowsNotFoundException() {
+        when(userRepository.findById(2L)).thenReturn(Optional.of(booker));
+        when(itemRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> bookingService.createBooking(2L, requestDto));
+    }
+
+    @Test
+    void approveBooking_AlreadyDecided_ThrowsValidationException() {
+        booking.setStatus(BookingStatus.APPROVED);
+        when(bookingRepository.findById(1L)).thenReturn(Optional.of(booking));
+
+        assertThrows(ValidationException.class, () -> bookingService.approveBooking(1L, 1L, true));
+    }
+
+    @Test
+    void getBooking_NotFound_ThrowsNotFoundException() {
+        when(bookingRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(NotFoundException.class, () -> bookingService.getBooking(2L, 1L));
+    }
+
+    @Test
+    void getUserBookings_UserNotFound_ThrowsNotFoundException() {
+        when(userRepository.existsById(2L)).thenReturn(false);
+
+        assertThrows(NotFoundException.class, () -> bookingService.getUserBookings(2L, BookingState.ALL));
+    }
+
+    @Test
+    void getOwnerBookings_UserNotFound_ThrowsNotFoundException() {
+        when(userRepository.existsById(1L)).thenReturn(false);
+
+        assertThrows(NotFoundException.class, () -> bookingService.getOwnerBookings(1L, BookingState.ALL));
+    }
+
+    @Test
+    void getUserBookings_EveryNonAllState_ReturnsBookings() {
+        when(userRepository.existsById(2L)).thenReturn(true);
+        when(bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(eq(2L), any(), any()))
+                .thenReturn(List.of(booking));
+        when(bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(eq(2L), any()))
+                .thenReturn(List.of(booking));
+        when(bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(eq(2L), any()))
+                .thenReturn(List.of(booking));
+        when(bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(2L, BookingStatus.WAITING))
+                .thenReturn(List.of(booking));
+        when(bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(2L, BookingStatus.REJECTED))
+                .thenReturn(List.of(booking));
+
+        for (BookingState state : List.of(BookingState.CURRENT, BookingState.PAST, BookingState.FUTURE,
+                BookingState.WAITING, BookingState.REJECTED)) {
+            assertEquals(1, bookingService.getUserBookings(2L, state).size());
+        }
+    }
+
+    @Test
+    void getOwnerBookings_EveryNonAllState_ReturnsBookings() {
+        when(userRepository.existsById(1L)).thenReturn(true);
+        when(bookingRepository.findAllByItem_Owner_IdAndStartBeforeAndEndAfterOrderByStartDesc(eq(1L), any(), any()))
+                .thenReturn(List.of(booking));
+        when(bookingRepository.findAllByItem_Owner_IdAndEndBeforeOrderByStartDesc(eq(1L), any()))
+                .thenReturn(List.of(booking));
+        when(bookingRepository.findAllByItem_Owner_IdAndStartAfterOrderByStartDesc(eq(1L), any()))
+                .thenReturn(List.of(booking));
+        when(bookingRepository.findAllByItem_Owner_IdAndStatusOrderByStartDesc(1L, BookingStatus.WAITING))
+                .thenReturn(List.of(booking));
+        when(bookingRepository.findAllByItem_Owner_IdAndStatusOrderByStartDesc(1L, BookingStatus.REJECTED))
+                .thenReturn(List.of(booking));
+
+        for (BookingState state : List.of(BookingState.CURRENT, BookingState.PAST, BookingState.FUTURE,
+                BookingState.WAITING, BookingState.REJECTED)) {
+            assertEquals(1, bookingService.getOwnerBookings(1L, state).size());
+        }
     }
 }
